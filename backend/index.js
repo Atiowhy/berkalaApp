@@ -3,12 +3,12 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 // route
-import authRoute from "./routes/authRoute.js";
-import habitRoute from "./routes/habitRoute.js";
-import todoRoute from "./routes/todoRoute.js";
-import transactionRoute from "./routes/transactionRoute.js";
-import savingRoutes from "./routes/savingRoute.js";
-import profileRoutes from "./routes/profileRoute.js";
+import authRoute from "./src/routes/authRoute.js";
+import habitRoute from "./src/routes/habitRoute.js";
+import todoRoute from "./src/routes/todoRoute.js";
+import transactionRoute from "./src/routes/transactionRoute.js";
+import savingRoutes from "./src/routes/savingRoute.js";
+import profileRoutes from "./src/routes/profileRoute.js";
 
 dotenv.config();
 
