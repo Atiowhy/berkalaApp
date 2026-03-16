@@ -23,7 +23,7 @@ export default function LoginPage() {
     try {
       // Tembak API Login di Backend Express
       // Pastikan portnya sama dengan yang kamu pakai di Register (misal: 5000)
-      const res = await fetch(`${BASE_URL}/login`, {
+      const res = await fetch(`${BASE_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

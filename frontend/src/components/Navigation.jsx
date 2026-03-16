@@ -17,6 +17,8 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
 
+  const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
   // State untuk menyimpan data profil asli
   const [profile, setProfile] = useState({ name: "Loading...", role: "..." });
 
@@ -25,7 +27,7 @@ export default function Sidebar() {
       try {
         const token = localStorage.getItem("token");
         if (!token) return;
-        const res = await fetch("http://localhost:5000/profile", {
+        const res = await fetch(`${BASE_URL}/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const result = await res.json();

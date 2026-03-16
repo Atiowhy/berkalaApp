@@ -27,11 +27,12 @@ export default function RegisterPage() {
     setSuccessMsg("");
 
     const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    console.log("Tembak API ke:", BASE_URL);
 
     try {
       // Tembak API Register di Backend Express
       // Pastikan port-nya sesuai dengan backend-mu (misal: 5000)
-      const res = await fetch(`${BASE_URL}/register`, {
+      const res = await fetch(`${BASE_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
