@@ -35,3 +35,5 @@ app.use("/profile", profileRoutes);
 app.listen(PORT, () => {
   console.log(`🚀 Server running on localhost://localhost:${PORT}`);
 });
+
+export default app;
