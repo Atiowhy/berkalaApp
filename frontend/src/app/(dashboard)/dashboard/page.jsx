@@ -30,6 +30,8 @@ export default function DashboardPage() {
   const [savings, setSavings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
   // --- API CALLS ---
   const fetchDashboardData = async () => {
     try {
@@ -40,10 +42,10 @@ export default function DashboardPage() {
 
       // UPDATE: Tambah fetch API Savings ke dalam Promise.all
       const [summaryRes, todosRes, habitsRes, savingsRes] = await Promise.all([
-        fetch("http://localhost:5000/transactions/summary", { headers }),
-        fetch("http://localhost:5000/todos", { headers }),
-        fetch("http://localhost:5000/habit", { headers }),
-        fetch("http://localhost:5000/savings", { headers }),
+        fetch(`${BASE_URL}/transactions/summary`, { headers }),
+        fetch(`${BASE_URL}/todos`, { headers }),
+        fetch(`${BASE_URL}/habit`, { headers }),
+        fetch(`${BASE_URL}/savings`, { headers }),
       ]);
 
       const summaryData = await summaryRes.json();

@@ -18,10 +18,12 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
 
+    const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
     try {
       // Tembak API Login di Backend Express
       // Pastikan portnya sama dengan yang kamu pakai di Register (misal: 5000)
-      const res = await fetch("http://localhost:5000/auth/login", {
+      const res = await fetch(`${BASE_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

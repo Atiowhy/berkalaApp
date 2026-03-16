@@ -54,6 +54,8 @@ export default function HabitPage() {
   const [newHabit, setNewHabit] = useState({ title: "", description: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
   const theme = {
     cyan: {
       bg: "bg-cyan-500/10",
@@ -86,7 +88,7 @@ export default function HabitPage() {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      const res = await fetch("http://localhost:5000/habit", {
+      const res = await fetch(`${BASE_URL}/habit`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -108,7 +110,7 @@ export default function HabitPage() {
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/habit", {
+      const res = await fetch(`${BASE_URL}/habit`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -130,7 +132,7 @@ export default function HabitPage() {
   const handleToggleLog = async (habitId, dateString) => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/habit/${habitId}/toggle`, {
+      const res = await fetch(`${BASE_URL}/habit/${habitId}/toggle`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -10,12 +10,14 @@ export default function ProfilePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
 
+  const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
   // Ambil data profil saat halaman dimuat
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:5000/profile", {
+        const res = await fetch(`${BASE_URL}/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const result = await res.json();
@@ -43,7 +45,7 @@ export default function ProfilePage() {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/profile", {
+      const res = await fetch(`${BASE_URL}/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

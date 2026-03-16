@@ -9,6 +9,8 @@ export default function TodoPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
   // --- API CALLS ---
   const fetchTodos = async () => {
     try {
@@ -16,7 +18,7 @@ export default function TodoPage() {
       if (!token) return;
 
       // Ingat: Ubah localhost ke IP komputermu jika ingin tes di HP!
-      const res = await fetch("http://localhost:5000/todos", {
+      const res = await fetch(`${BASE_URL}/todos`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -40,7 +42,7 @@ export default function TodoPage() {
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/todos", {
+      const res = await fetch(`${BASE_URL}/todos`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -69,7 +71,7 @@ export default function TodoPage() {
         ),
       );
 
-      const res = await fetch(`http://localhost:5000/todos/${todoId}/toggle`, {
+      const res = await fetch(`${BASE_URL}/todos/${todoId}/toggle`, {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -87,7 +89,7 @@ export default function TodoPage() {
       // Hapus dari UI duluan
       setTodos(todos.filter((t) => t.id !== todoId));
 
-      const res = await fetch(`http://localhost:5000/todos/${todoId}`, {
+      const res = await fetch(`${BASE_URL}/todos/${todoId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });

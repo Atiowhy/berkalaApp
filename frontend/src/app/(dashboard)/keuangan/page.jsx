@@ -125,6 +125,8 @@ export default function KeuanganPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
   // --- API CALLS ---
   const fetchData = async () => {
     try {
@@ -135,9 +137,9 @@ export default function KeuanganPage() {
 
       // Tarik semua data secara paralel agar ngebut!
       const [summaryRes, transRes, savingsRes] = await Promise.all([
-        fetch("http://localhost:5000/transactions/summary", { headers }),
-        fetch("http://localhost:5000/transactions", { headers }),
-        fetch("http://localhost:5000/savings", { headers }),
+        fetch(`${BASE_URL}/transactions/summary`, { headers }),
+        fetch(`${BASE_URL}/transactions`, { headers }),
+        fetch(`${BASE_URL}/savings`, { headers }),
       ]);
 
       const summaryData = await summaryRes.json();
@@ -164,7 +166,7 @@ export default function KeuanganPage() {
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/transactions", {
+      const res = await fetch(`${BASE_URL}/transactions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -192,7 +194,7 @@ export default function KeuanganPage() {
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/savings", {
+      const res = await fetch(`${BASE_URL}/savings`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -215,17 +217,14 @@ export default function KeuanganPage() {
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(
-        `http://localhost:5000/savings/${selectedSavingId}/add`,
-        {
-          method: "PUT", // Ingat, rute top up kita pakai PUT
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ amount: topUpAmount }),
+      const res = await fetch(`${BASE_URL}/savings/${selectedSavingId}/add`, {
+        method: "PUT", // Ingat, rute top up kita pakai PUT
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: JSON.stringify({ amount: topUpAmount }),
+      });
       if (res.ok) {
         setIsTopUpModalOpen(false);
         setTopUpAmount("");
