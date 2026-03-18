@@ -26,9 +26,9 @@ export default function DashboardPage() {
   const [summary, setSummary] = useState({ balance: 0 });
   const [todos, setTodos] = useState([]);
   const [habits, setHabits] = useState([]);
-  // STATE BARU: Untuk Tabungan
   const [savings, setSavings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [userName, setUsername] = useState("Pengguna");
 
   const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -41,22 +41,30 @@ export default function DashboardPage() {
       const headers = { Authorization: `Bearer ${token}` };
 
       // UPDATE: Tambah fetch API Savings ke dalam Promise.all
-      const [summaryRes, todosRes, habitsRes, savingsRes] = await Promise.all([
-        fetch(`${BASE_URL}/transactions/summary`, { headers }),
-        fetch(`${BASE_URL}/todos`, { headers }),
-        fetch(`${BASE_URL}/habit`, { headers }),
-        fetch(`${BASE_URL}/savings`, { headers }),
-      ]);
+      const [summaryRes, todosRes, habitsRes, savingsRes, profileRes] =
+        await Promise.all([
+          fetch(`${BASE_URL}/transactions/summary`, { headers }),
+          fetch(`${BASE_URL}/todos`, { headers }),
+          fetch(`${BASE_URL}/habit`, { headers }),
+          fetch(`${BASE_URL}/savings`, { headers }),
+          fetch(`${BASE_URL}/profile`, { headers }),
+        ]);
 
       const summaryData = await summaryRes.json();
       const todosData = await todosRes.json();
       const habitsData = await habitsRes.json();
       const savingsData = await savingsRes.json();
+      const profileData = await profileRes.json();
 
       if (summaryData.success) setSummary(summaryData.data);
       if (todosData.success) setTodos(todosData.data);
       if (habitsData.success) setHabits(habitsData.data);
       if (savingsData.success) setSavings(savingsData.data);
+
+      // menggambil nama pengguna
+      if (profileData) {
+        setUsername(profileData.name || profileData.data?.name || "Pengguna");
+      }
     } catch (error) {
       console.error("Gagal mengambil data dashboard:", error);
     } finally {
@@ -93,7 +101,7 @@ export default function DashboardPage() {
 
         <div className="z-10">
           <p className="text-cyan-400 font-bold mb-1 flex items-center gap-2">
-            <TrendingUp size={18} /> {greeting}, Atio! 👋
+            <TrendingUp size={18} /> {greeting}, {userName.split(" ")[0]}! 👋
           </p>
           <h1 className="text-3xl md:text-4xl font-black text-gray-100">
             Pusat Komando

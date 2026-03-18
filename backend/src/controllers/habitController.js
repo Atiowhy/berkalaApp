@@ -33,7 +33,8 @@ export const createHabit = async (req, res) => {
 
 export const getHabits = async (req, res) => {
   try {
-    const userId = req.user.id;
+    console.log("Isi dari req.user adalah:", req.user);
+    const userId = req.user.userId;
 
     const habits = await getUserHabits(userId);
 
