@@ -10,7 +10,7 @@ import {
   CheckSquare,
   Wallet,
   LogOut,
-  Settings, // Tambahkan ikon gear untuk profil
+  Settings,
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -19,7 +19,6 @@ export default function Sidebar() {
 
   const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-  // State untuk menyimpan data profil asli
   const [profile, setProfile] = useState({ name: "Loading...", role: "..." });
 
   useEffect(() => {
@@ -51,7 +50,6 @@ export default function Sidebar() {
     { name: "Keuangan", path: "/keuangan", icon: Wallet },
   ];
 
-  // Ambil inisial nama (Huruf pertama)
   const initial =
     profile.name !== "Loading..." ? profile.name.charAt(0).toUpperCase() : "N";
 
@@ -90,7 +88,9 @@ export default function Sidebar() {
                       }
                     />
                     <span
-                      className={`font-semibold tracking-wide ${isActive ? "text-cyan-400" : ""}`}>
+                      className={`font-semibold tracking-wide ${
+                        isActive ? "text-cyan-400" : ""
+                      }`}>
                       {item.name}
                     </span>
                   </div>
@@ -100,7 +100,7 @@ export default function Sidebar() {
           </nav>
         </div>
 
-        {/* PROFIL PENGGUNA (Sekarang bisa diklik ke /profile) */}
+        {/* PROFIL PENGGUNA DESKTOP */}
         <div className="p-4 mb-4 mx-4 border border-slate-800/60 rounded-3xl bg-slate-900/40 backdrop-blur-md hover:bg-slate-900/60 transition-colors group">
           <div className="flex items-center gap-3">
             <Link
@@ -131,28 +131,67 @@ export default function Sidebar() {
       {/* MOBILE BOTTOM NAV */}
       <nav className="md:hidden fixed bottom-0 left-0 w-full bg-slate-950/90 backdrop-blur-2xl border-t border-slate-800 z-50 pb-safe">
         <div className="flex justify-around items-center p-2">
-          {/* Tambahkan menu Profil untuk versi Mobile */}
           {[
             ...menuItems,
             { name: "Profil", path: "/profile", icon: Settings },
+            // Tambahkan objek Logout dengan action onClick
+            {
+              name: "Keluar",
+              action: handleLogout,
+              icon: LogOut,
+              isDanger: true,
+            },
           ].map((item) => {
+            // Cek apakah item ini aktif (untuk link)
             const isActive =
-              pathname === item.path || pathname?.startsWith(item.path + "/");
+              item.path &&
+              (pathname === item.path || pathname?.startsWith(item.path + "/"));
+
+            // Komponen isi dari menu (ikon + teks)
+            const MenuContent = () => (
+              <div className="flex flex-col items-center justify-center py-2 gap-1 relative group">
+                {isActive && (
+                  <div className="absolute -top-2 w-8 h-1 bg-cyan-400 rounded-b-full shadow-[0_0_10px_rgba(34,211,238,0.8)]"></div>
+                )}
+                <item.icon
+                  size={20}
+                  className={`transition-all duration-300 ${
+                    isActive
+                      ? "text-cyan-400 scale-110"
+                      : item.isDanger
+                        ? "text-rose-500/80 group-hover:text-rose-400" // Warna merah untuk logout
+                        : "text-slate-500 group-hover:text-gray-300"
+                  }`}
+                />
+                <span
+                  className={`text-[9px] font-bold transition-all duration-300 ${
+                    isActive
+                      ? "text-cyan-400"
+                      : item.isDanger
+                        ? "text-rose-500/80" // Warna merah untuk teks logout
+                        : "text-slate-500"
+                  }`}>
+                  {item.name}
+                </span>
+              </div>
+            );
+
+            // Jika item punya properti 'action', render sebagai <button>
+            if (item.action) {
+              return (
+                <button
+                  key={item.name}
+                  onClick={item.action}
+                  className="flex-1 w-full">
+                  <MenuContent />
+                </button>
+              );
+            }
+
+            // Jika tidak, render sebagai <Link> seperti biasa
             return (
               <Link href={item.path} key={item.name} className="flex-1">
-                <div className="flex flex-col items-center justify-center py-2 gap-1 relative group">
-                  {isActive && (
-                    <div className="absolute -top-2 w-8 h-1 bg-cyan-400 rounded-b-full shadow-[0_0_10px_rgba(34,211,238,0.8)]"></div>
-                  )}
-                  <item.icon
-                    size={22}
-                    className={`transition-all duration-300 ${isActive ? "text-cyan-400 scale-110" : "text-slate-500 group-hover:text-gray-300"}`}
-                  />
-                  <span
-                    className={`text-[10px] font-bold transition-all duration-300 ${isActive ? "text-cyan-400" : "text-slate-500"}`}>
-                    {item.name}
-                  </span>
-                </div>
+                <MenuContent />
               </Link>
             );
           })}
