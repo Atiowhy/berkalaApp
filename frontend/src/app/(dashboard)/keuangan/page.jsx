@@ -28,18 +28,30 @@ const formatRupiah = (angka) => {
 };
 
 const formatDate = (dateString) => {
+  if (!dateString) return "-";
   const options = { day: "numeric", month: "short", year: "numeric" };
   return new Date(dateString).toLocaleDateString("id-ID", options);
 };
 
+// UPDATE 1: Tambahkan gaya khusus untuk tipe "SAVING"
 const getCategoryIcon = (category, type) => {
-  const cat = category.toLowerCase();
+  const cat = category?.toLowerCase() || "";
+
   if (type === "INCOME")
     return {
       icon: <Landmark size={20} className="text-emerald-400" />,
       bg: "bg-emerald-500/10 border-emerald-500/30",
       text: "text-emerald-400",
     };
+
+  // Tambahan khusus untuk tabungan
+  if (type === "SAVING")
+    return {
+      icon: <PiggyBank size={20} className="text-cyan-400" />,
+      bg: "bg-cyan-500/10 border-cyan-500/30",
+      text: "text-cyan-400",
+    };
+
   if (cat.includes("makan") || cat.includes("minum") || cat.includes("kopi"))
     return {
       icon: <Coffee size={20} className="text-rose-400" />,
@@ -102,7 +114,7 @@ export default function KeuanganPage() {
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  // State untuk Modal Transaksi
+  // State Modal
   const [isTransModalOpen, setIsTransModalOpen] = useState(false);
   const [transFormData, setTransFormData] = useState({
     type: "EXPENSE",
@@ -111,18 +123,15 @@ export default function KeuanganPage() {
     description: "",
   });
 
-  // State untuk Modal Buat Tabungan
   const [isSavingModalOpen, setIsSavingModalOpen] = useState(false);
   const [savingFormData, setSavingFormData] = useState({
     title: "",
     targetAmount: "",
   });
 
-  // State untuk Modal Top Up Tabungan
   const [isTopUpModalOpen, setIsTopUpModalOpen] = useState(false);
   const [selectedSavingId, setSelectedSavingId] = useState(null);
   const [topUpAmount, setTopUpAmount] = useState("");
-
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -135,7 +144,6 @@ export default function KeuanganPage() {
 
       const headers = { Authorization: `Bearer ${token}` };
 
-      // Tarik semua data secara paralel agar ngebut!
       const [summaryRes, transRes, savingsRes] = await Promise.all([
         fetch(`${BASE_URL}/transactions/summary`, { headers }),
         fetch(`${BASE_URL}/transactions`, { headers }),
@@ -218,7 +226,7 @@ export default function KeuanganPage() {
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(`${BASE_URL}/savings/${selectedSavingId}/add`, {
-        method: "PUT", // Ingat, rute top up kita pakai PUT
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -240,6 +248,32 @@ export default function KeuanganPage() {
     setSelectedSavingId(id);
     setIsTopUpModalOpen(true);
   };
+
+  // UPDATE 2: LOGIKA PENGGABUNGAN (MERGE) TRANSAKSI & RIWAYAT TABUNGAN
+  const extractSavingHistory = () => {
+    const historyList = [];
+    savings.forEach((saving) => {
+      // Kita cek apakah backend mengembalikan array "logs" atau "history"
+      const logs = saving.logs || saving.history || [];
+
+      logs.forEach((log) => {
+        historyList.push({
+          id: `sav-${log.id}`,
+          category: `Tabungan: ${saving.title}`,
+          amount: log.amount,
+          date: log.createdAt || log.date, // Ambil tanggal dari log
+          type: "SAVING", // Tipe khusus untuk membedakan dengan Expense/Income
+          description: "Top Up Celengan",
+        });
+      });
+    });
+    return historyList;
+  };
+
+  // Gabungkan transaksi reguler dan riwayat tabungan, lalu urutkan dari yang terbaru
+  const combinedHistory = [...transactions, ...extractSavingHistory()].sort(
+    (a, b) => new Date(b.date) - new Date(a.date),
+  );
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700 max-w-5xl mx-auto relative">
@@ -326,7 +360,6 @@ export default function KeuanganPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             {savings.map((saving, index) => {
               const theme = savingThemes[index % savingThemes.length];
-              // Hitung persentase (maksimal 100%)
               const progress = Math.min(
                 100,
                 Math.round((saving.currentAmount / saving.targetAmount) * 100),
@@ -350,7 +383,6 @@ export default function KeuanganPage() {
                         </p>
                       </div>
                     </div>
-                    {/* Tombol Top Up (Plus) */}
                     <button
                       onClick={() => openTopUpModal(saving.id)}
                       className={`p-1.5 rounded-lg border ${theme.bg} ${theme.textColor} hover:${theme.barColor} hover:text-slate-950 transition-all duration-300 shadow-sm hover:shadow-[0_0_10px_currentColor]`}>
@@ -379,7 +411,7 @@ export default function KeuanganPage() {
         )}
       </div>
 
-      {/* --- RIWAYAT TRANSAKSI (Sama seperti sebelumnya) --- */}
+      {/* --- RIWAYAT TERAKHIR (GABUNGAN) --- */}
       <div className="mt-8">
         <h2 className="text-lg font-bold text-gray-200 mb-6 px-1">
           Riwayat Terakhir
@@ -388,15 +420,20 @@ export default function KeuanganPage() {
           <div className="text-center py-10 text-cyan-500">
             Menarik data dari brankas...
           </div>
-        ) : transactions.length === 0 ? (
+        ) : combinedHistory.length === 0 ? (
           <div className="text-center text-slate-500 py-10 border border-slate-800 border-dashed rounded-3xl">
-            Belum ada transaksi.
+            Belum ada aktivitas.
           </div>
         ) : (
           <div className="space-y-3">
-            {transactions.map((trx) => {
+            {/* UPDATE 3: Map data dari combinedHistory, bukan transactions */}
+            {combinedHistory.map((trx) => {
               const style = getCategoryIcon(trx.category, trx.type);
-              const sign = trx.type === "INCOME" ? "+" : "-";
+              // Kalau menabung kita anggap ngurangin duit di dompet (tapi nambah di tabungan)
+              // Atau kita kasih simbol "+" warna cyan
+              const sign =
+                trx.type === "INCOME" || trx.type === "SAVING" ? "+" : "-";
+
               return (
                 <div
                   key={trx.id}
@@ -428,8 +465,8 @@ export default function KeuanganPage() {
       </div>
 
       {/* ================= MODALS ================= */}
+      {/* ... (Kode Modal Transaksi, Buat Target, Top Up tidak berubah) ... */}
 
-      {/* 1. Modal Transaksi Baru */}
       {isTransModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="bg-slate-900 border border-slate-800 p-6 md:p-8 rounded-3xl w-full max-w-md shadow-[0_0_40px_rgba(0,0,0,0.5)]">
@@ -508,7 +545,6 @@ export default function KeuanganPage() {
         </div>
       )}
 
-      {/* 2. Modal Buat Target Tabungan */}
       {isSavingModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="bg-slate-900 border border-slate-800 p-6 md:p-8 rounded-3xl w-full max-w-md shadow-[0_0_40px_rgba(0,0,0,0.5)]">
@@ -558,7 +594,6 @@ export default function KeuanganPage() {
         </div>
       )}
 
-      {/* 3. Modal Top Up Tabungan */}
       {isTopUpModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="bg-slate-900 border border-slate-800 p-6 md:p-8 rounded-3xl w-full max-w-md shadow-[0_0_40px_rgba(0,0,0,0.5)]">

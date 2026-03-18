@@ -25,7 +25,16 @@ export const createSaving = async (req, res) => {
 
 export const getSavings = async (req, res) => {
   try {
-    const savings = await getUserSavings(req.user.userId);
+    const userId = req.user.userId;
+
+    const savings = await prisma.saving.findMany({
+      where: { userId },
+      include: {
+        logs: true, // <--- INI KUNCINYA BIAR FRONTEND BISA BACA
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
     res.status(200).json({ success: true, data: savings });
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
@@ -34,11 +43,25 @@ export const getSavings = async (req, res) => {
 
 export const addProgress = async (req, res) => {
   try {
+    const { id } = req.params; // ID tabungannya
     const { amount } = req.body;
     if (!amount)
       return res.status(400).json({ message: "Nominal wajib diisi!" });
 
-    const updatedSaving = await addSavingProgress(req.params.id, amount);
+    const updatedSaving = await prisma.saving.update({
+      where: { id },
+      data: {
+        currentAmount: { increment: parseFloat(amount) },
+      },
+    });
+
+    // 2. CATAT SEJARAHNYA KE SAVING LOG!
+    await prisma.savingLog.create({
+      data: {
+        savingId: id,
+        amount: parseFloat(amount),
+      },
+    });
     res.status(200).json({ success: true, data: updatedSaving });
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
